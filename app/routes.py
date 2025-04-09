@@ -5,7 +5,6 @@ API routes for the health statistics web service.
 import json
 from flask import request, jsonify
 from app import webserver
-from app.data_ingestor import DataIngestor
 
 # Example endpoint definition
 @webserver.route('/api/post_endpoint', methods=['POST'])
@@ -22,9 +21,8 @@ def post_endpoint():
 
         # Sending back a JSON response
         return jsonify(response)
-    else:
-        # Method Not Allowed
-        return jsonify({"error": "Method not allowed"}), 405
+
+    return jsonify({"error": "Method not allowed"}), 405
 
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
@@ -41,7 +39,8 @@ def get_response(job_id):
     job_status = webserver.tasks_runner.job_status[job_id]
     if job_status == "running":
         return jsonify({"status": "running"}), 200
-    elif job_status == "error":
+
+    if job_status == "error":
         return jsonify({"status": "error", "reason": "Task failed"}), 400
 
     # Read the result file if the job is done

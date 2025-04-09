@@ -127,7 +127,7 @@ class DataIngestor:
         state_means = (
             filtered_data.groupby('LocationDesc')['Data_Value']
             .mean()
-            .sort_values(ascending=not (question in self.questions_best_is_min))
+            .sort_values(ascending=not question in self.questions_best_is_min)
             .head(5)
             .to_dict()
         )
@@ -164,10 +164,10 @@ class DataIngestor:
 
         # Calculate the difference for each state (global_mean - state_mean)
         diff = {state: round(global_mean - state_mean, 6) for state, state_mean in state_means.items()}
-        
+
         # Sort the dictionary by values in descending order
         sorted_diff = dict(sorted(diff.items(), key=lambda item: item[1], reverse=True))
-        
+
         return sorted_diff
 
     def get_state_diff_from_mean(self, data):
@@ -220,14 +220,13 @@ class DataIngestor:
         Returns the mean for each category (Stratification1) for a specific state.
         """
         question = data.get("question")
-        state = data.get("state")
-        if not question or not state:
+        if not question or not data.get("state"):
             raise ValueError("Missing 'question' or 'state' in request")
 
         # Filter data for the given question and state
-        filtered_data = self.data[(self.data['Question'] == question) & (self.data['LocationDesc'] == state)]
+        filtered_data = self.data[(self.data['Question'] == question) & (self.data['LocationDesc'] == data.get("state"))]
         if filtered_data.empty:
-            raise ValueError(f"No data found for question: {question} and state: {state}")
+            raise ValueError(f"No data found for question: {question} and state: {data.get('state')}")
 
         # Check for required columns
         required_columns = ['Data_Value', 'Stratification1', 'StratificationCategory1']
@@ -251,4 +250,4 @@ class DataIngestor:
                 result[key] = mean_value
 
         # Wrap the result in a state-level dictionary
-        return {state: result}
+        return {data.get("state"): result}
